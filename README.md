@@ -1,8 +1,8 @@
 # video-srt-command
 一个自动生成字幕SRT文件的开源软件工具(命令行版本)
 
-***开源声明：修改自[video-srt](https://github.com/wxbool/video-srt)目前video-srt项目存在较多问题，无法正常运行。和原作者@Viggo沟通后，
-他表示暂时没有精力进行这个项目的更新迭代，但个人对这个项目比较感兴趣，于是修改其中的bug，对项目进行了重构。为了便于后续迭代更新，新建了video-srt-command开源项目。***
+***开源声明：修改自[video-srt](https://github.com/wxbool/video-srt).目前video-srt项目存在些问题，无法正常运行。和原作者@Viggo沟通后，
+表示暂时没有精力进行这个项目的更新迭代。我对这个项目比较感兴趣，对项目进行了修改重构，使之能够正常运行。为了便于后续迭代更新，新建了video-srt-command开源项目。***
 
 ## 语音识别接口
 本项目暂时只接入了阿里云的相关接口：[OSS对象存储](https://www.aliyun.com/product/oss?spm=5176.12825654.eofdhaal5.13.e9392c4aGfj5vj&aly_as=K11FcpO8)
