@@ -1,0 +1,106 @@
+//package tool
+//
+//import (
+//	"errors"
+//	"strconv"
+//	"time"
+//	"video-srt-command/app/locallog"
+//
+//	//"video-srt-command/app/speechAPI/baidu/trans"
+//)
+//
+////翻译语言
+//const (
+//	LANGUAGE_CN   = 1  //中文
+//	LANGUAGE_EN   = 2  //英文
+//	LANGUAGE_JP   = 3  //日语
+//	LANGUAGE_KOR  = 4  //韩语
+//	LANGUAGE_FRA  = 5  //法语
+//	LANGUAGE_DE   = 6  //德语
+//	LANGUAGE_SPA  = 7  //西班牙语
+//	LANGUAGE_RU   = 8  //俄语
+//	LANGUAGE_ITA  = 9  //意大利语
+//	LANGUAGE_THAI = 10 //泰语
+//)
+//
+////type TransConfig struct {
+////	BaiduTransConfig trans.BaiduTransConfig
+////	//InputLang string
+////	//OutputLang string
+////}
+//
+//type RunTranslateResult struct {
+//	From           string //翻译源语言
+//	To             string //译文语言
+//	TransResultSrc string //翻译结果（原文）
+//	TransResultDst string //翻译结果（译文）
+//}
+//
+////获取百度翻译引擎的语言字符标识
+//func GetLanguageChar(Language int) string {
+//	//baidutranslate引擎
+//	switch Language {
+//	case LANGUAGE_CN:
+//		return "zh"
+//	case LANGUAGE_EN:
+//		return "en"
+//	case LANGUAGE_JP:
+//		return "jp"
+//	case LANGUAGE_KOR:
+//		return "kor"
+//	case LANGUAGE_FRA:
+//		return "fra"
+//	case LANGUAGE_DE:
+//		return "de"
+//	case LANGUAGE_SPA:
+//		return "spa"
+//	case LANGUAGE_RU:
+//		return "ru"
+//	case LANGUAGE_ITA:
+//		return "it"
+//	case LANGUAGE_THAI:
+//		return "th"
+//	}
+//
+//	return ""
+//}
+//
+////翻译模块
+//func RunTranslate(text string, mediafile string, inputLang int, outputLang int, accountType string) (*RunTranslateResult, error) {
+//
+//	translateResult := new(RunTranslateResult)
+//
+//	if accountType == "标准版" {
+//		//百度翻译标准版休眠1000毫秒
+//		time.Sleep(time.Millisecond * 1000)
+//	} else {
+//		//休眠200毫秒
+//		time.Sleep(time.Millisecond * 200)
+//	}
+//
+//	//转换语言字符标识
+//	from := GetLanguageChar(inputLang)
+//	to := GetLanguageChar(outputLang)
+//
+//	//发起翻译请求
+//	links := 0
+//	baiduResult, transErr := BaiduTransAPI(text, from, to)
+//	for transErr != nil && links <= 5 {
+//		links++
+//		locallog.Log("翻译请求失败，重试第"+strconv.Itoa(links)+"次 ...", mediafile)
+//		time.Sleep(time.Second * time.Duration(links))
+//		//重试
+//		baiduResult, transErr = c.BaiduTransConfig.BaiduTransAPI(text, from, to)
+//	}
+//	if transErr != nil {
+//		return translateResult, errors.New("翻译失败！错误信息：" + transErr.Error())
+//	}
+//
+//	translateResult.TransResultDst = baiduResult.TransResultDst
+//	translateResult.TransResultSrc = baiduResult.TransResultSrc
+//	translateResult.From = baiduResult.From
+//	translateResult.To = baiduResult.To
+//
+//	return translateResult, nil
+//
+//}
