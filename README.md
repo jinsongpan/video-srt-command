@@ -16,6 +16,10 @@
 本项目暂时只接入了百度翻译的接口：[百度翻译](https://fanyi-api.baidu.com/product/113)
 
 ## 快速体验
+- step0: 从github下载项目源代码
+```shell
+git clone https://github.com/jinsongpan/video-srt-command.git
+```
 - step1：配置服务接口（config.ini）
 ```ini
 [Sys]
