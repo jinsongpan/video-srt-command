@@ -51,16 +51,16 @@ func ReadConfig(cfg string) *VideoSrt {
 		appconfig := &VideoSrt{}
 
 		//AliyunOSS
-		appconfig.AliyunOSS.Endpoint = file.GetMust("AliyunOSS.endpoint", "")
-		appconfig.AliyunOSS.AccessKeyId = file.GetMust("AliyunOSS.accessKeyId", "")
-		appconfig.AliyunOSS.AccessKeySecret = file.GetMust("AliyunOSS.accessKeySecret", "")
-		appconfig.AliyunOSS.BucketName = file.GetMust("AliyunOSS.bucketName", "")
-		appconfig.AliyunOSS.BucketDomain = file.GetMust("AliyunOSS.bucketDomain", "")
+		appconfig.AliyunOSS.Endpoint = file.GetMust("Aliyun.endpoint", "")
+		appconfig.AliyunOSS.AccessKeyId = file.GetMust("Aliyun.accessKeyId", "")
+		appconfig.AliyunOSS.AccessKeySecret = file.GetMust("Aliyun.accessKeySecret", "")
+		appconfig.AliyunOSS.BucketName = file.GetMust("Aliyun.bucketName", "")
+		appconfig.AliyunOSS.BucketDomain = file.GetMust("Aliyun.bucketDomain", "")
 
 		//AliyunCloud
-		appconfig.AliyunCloud.AccessKeyId = file.GetMust("AliyunCloud.accessKeyId", "")
-		appconfig.AliyunCloud.AccessKeySecret = file.GetMust("AliyunCloud.accessKeySecret", "")
-		appconfig.AliyunCloud.AppKey = file.GetMust("AliyunCloud.appKey", "")
+		appconfig.AliyunCloud.AppKey = file.GetMust("Aliyun.appKey", "")
+		appconfig.AliyunCloud.AccessKeyId = file.GetMust("Aliyun.accessKeyId", "")
+		appconfig.AliyunCloud.AccessKeySecret = file.GetMust("Aliyun.accessKeySecret", "")
 
 		//BaiduTranslate
 		appconfig.TransConfig.AppID = file.GetMust("BaiduTranslate.appID", "")
@@ -108,12 +108,12 @@ func (app *VideoSrt) Run(media string) {
 	tmpAudio = app.TempDir + "/" + tmpAudioFile
 
 	if media == "" {
-		panic("app.go:84: 输入需要识别的媒体文件!")
+		panic("app.go: 输入需要识别的媒体文件!")
 	}
 
 	//校验媒体文件
 	if tool.VaildFile(media) != true {
-		panic("app.go:84: 视频文件无效!")
+		panic("app.go: 视频文件无效!")
 	}
 	//校验临时文件是否冲突
 	if tool.VaildFile(tmpAudio) != false {

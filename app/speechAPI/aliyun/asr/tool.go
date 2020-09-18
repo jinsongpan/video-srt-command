@@ -13,32 +13,6 @@ type AliyunAudioRecResultBlock struct {
 	Blocks []int
 }
 
-////读取阿里语音识别配置
-//func ReadConfig(cfg string) *VideoSrt {
-//	if file, e := config.LoadConfigFile(cfg, "."); e != nil {
-//		panic(e)
-//	} else {
-//		appconfig := &VideoSrt{}
-//
-//		//AliyunOSS
-//		appconfig.AliyunOSS.Endpoint = file.GetMust("AliyunOSS.endpoint", "")
-//		appconfig.AliyunOSS.AccessKeyId = file.GetMust("AliyunOSS.accessKeyId", "")
-//		appconfig.AliyunOSS.AccessKeySecret = file.GetMust("AliyunOSS.accessKeySecret", "")
-//		appconfig.AliyunOSS.BucketName = file.GetMust("AliyunOSS.bucketName", "")
-//		appconfig.AliyunOSS.BucketDomain = file.GetMust("AliyunOSS.bucketDomain", "")
-//
-//		//AliyunCloud
-//		appconfig.AliyunCloud.AccessKeyId = file.GetMust("aliyunCloud.accessKeyId", "")
-//		appconfig.AliyunCloud.AccessKeySecret = file.GetMust("aliyunCloud.accessKeySecret", "")
-//		appconfig.AliyunCloud.AppKey = file.GetMust("aliyunCloud.appKey", "")
-//
-//		appconfig.AutoBlock = file.GetBoolMust("srt.autoBlock", false)
-//		appconfig.TempDir = file.GetMust("sys.tempDIr", "")
-//
-//		return appconfig
-//	}
-//}
-
 //阿里云录音录音文件识别 - 自动分段处理
 func AliyunAudioResultWordHandle(result []byte, callback func(vresult *AliyunAudioRecResult)) {
 	var audioResult = make(map[int64][]*AliyunAudioRecResultBlock)

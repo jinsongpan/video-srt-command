@@ -7,6 +7,7 @@ import (
 	"github.com/axgle/mahonia"
 	"github.com/buger/jsonparser"
 	"github.com/pkg/errors"
+	"log"
 	"os"
 	"path"
 	"strconv"
@@ -275,22 +276,69 @@ func AliyunRecResultGenText(media string, AudioResult map[int64][]*AliyunAudioRe
 
 	defer file.Close() //defer
 
-	for _, result := range AudioResult {
-		index := 0
-		for _, data := range result {
+	// 输出字幕文件
+	if outputType == "srt" {
+		for _, result := range AudioResult {
+			index := 0
+			for _, data := range result {
 
-			if data.Text == "" {
-				continue
+				if data.Text == "" {
+					continue
+				}
+				textLine := enc.ConvertString(tool.GenSubtitle(index, data.BeginTime, data.EndTime, data.Text,
+					data.TranslateText, isTranslate, isBilingual)) //将字幕文本写入textLine
+				if _, err := file.WriteString(textLine); err != nil {
+					panic(err)
+				}
+				index++
 			}
+		}
+	} else if outputType == "lrc" {
+		for _, result := range AudioResult {
+			index := 0
+			for _, data := range result {
 
-			// 输出字幕文件
-			textLine := enc.ConvertString(tool.GenSubtitle(index, data.BeginTime, data.EndTime, data.Text,
-				data.TranslateText, isTranslate, isBilingual)) //将字幕文本写入textLine
-			if _, err := file.WriteString(textLine); err != nil {
-				panic(err)
+				if data.Text == "" {
+					continue
+				}
+				textLine := enc.ConvertString(tool.GenLyric(data.BeginTime, data.Text, data.TranslateText, isTranslate, isBilingual)) //将歌词文本写入textLine
+				if _, err := file.WriteString(textLine); err != nil {
+					panic(err)
+				}
+				index++
 			}
+		}
+	} else if outputType == "txt" {
+		for _, result := range AudioResult {
+			index := 0
+			for _, data := range result {
 
-			index++
+				if data.Text == "" {
+					continue
+				}
+				textLine := enc.ConvertString(tool.GenText(data.Text, data.TranslateText, isTranslate, isBilingual)) //将文本写入textLine
+				if _, err := file.WriteString(textLine); err != nil {
+					panic(err)
+				}
+				index++
+			}
+		}
+	} else {
+		log.Println("输出文件类型 outputType 不是“srt, lrc, txt”中的一种，系统默认按srt格式保存内容...")
+		for _, result := range AudioResult {
+			index := 0
+			for _, data := range result {
+
+				if data.Text == "" {
+					continue
+				}
+				textLine := enc.ConvertString(tool.GenSubtitle(index, data.BeginTime, data.EndTime, data.Text,
+					data.TranslateText, isTranslate, isBilingual)) //将字幕文本写入textLine
+				if _, err := file.WriteString(textLine); err != nil {
+					panic(err)
+				}
+				index++
+			}
 		}
 	}
 }
