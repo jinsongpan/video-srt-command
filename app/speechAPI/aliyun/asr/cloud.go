@@ -125,7 +125,7 @@ func (c AliyunCloud) NewAudioFile(fileLink string) (string, *sdk.Client, error) 
 
 	//fmt.Println("cloud.go:postMapResult：")
 	//for k, v := range postMapResult {
-	//	fmt.Printf("	keyname: %v valname: %v\n", k, v)
+	//	fmt.Printf(" keyname: %v valname: %v\n", k, v)
 	//}
 
 	//检验结果
@@ -187,9 +187,9 @@ func (c AliyunCloud) GetAudioFileResult(taskId string, client *sdk.Client, callb
 }
 
 //阿里云录音文件识别
-func AliyunAudioRecognition(filelink string, engine AliyunCloud, autoBlock bool) (AudioResult map[int64][]*AliyunAudioRecResult) {
+func AliyunAudioRecognition(fileLink string, c AliyunCloud, autoBlock bool) (AudioResult map[int64][]*AliyunAudioRecResult) {
 	//创建识别请求
-	taskid, client, err := engine.NewAudioFile(filelink)
+	taskid, client, err := c.NewAudioFile(fileLink)
 	if err != nil {
 		panic(err)
 	}
@@ -197,7 +197,7 @@ func AliyunAudioRecognition(filelink string, engine AliyunCloud, autoBlock bool)
 	AudioResult = make(map[int64][]*AliyunAudioRecResult)
 
 	//遍历获取识别结果
-	if err = engine.GetAudioFileResult(taskid, client, func(result []byte) {
+	if err = c.GetAudioFileResult(taskid, client, func(result []byte) {
 
 		//结果处理
 		statusText, _ := jsonparser.GetString(result, "StatusText") //结果状态

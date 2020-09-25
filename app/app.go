@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os"
@@ -149,14 +150,14 @@ func (app *VideoSrt) Run(media string) {
 	}
 
 	log.Printf("step2: 上传规范化后的音频文件:%v...", tmpAudio)
-	//bufio.NewReader(os.Stdin).ReadBytes('\n') //断点 0
+	bufio.NewReader(os.Stdin).ReadBytes('\n') //断点 0
 
 	//上传音频至OSS
 	OSSTempFile := oss.UploadAudioToCloud(app.AliyunOSS, tmpAudio)
 	//fmt.Println("app.go:157:OSSTempFile", OSSTempFile)
 
 	//获取完整OSS链接
-	filelink := app.AliyunOSS.GetObjectFileUrl(OSSTempFile)
+	fileLink := app.AliyunOSS.GetObjectFileUrl(OSSTempFile)
 	//fmt.Println("app.go:160:filelink", filelink)
 	//filelink := "http://asr-test-srt.oss-cn-shenzhen.aliyuncs.com/2020/9/9/test.mp3"
 
@@ -167,7 +168,7 @@ func (app *VideoSrt) Run(media string) {
 	if app.IsCleanOSSTempFile {
 		defer func() {
 			if err := oss.DelOSSTempFile(app.AliyunOSS, OSSTempFile); err != nil {
-				log.Println("AliyunOSS临时音频清理失败，建议手动删除", filelink)
+				log.Println("AliyunOSS临时音频清理失败，建议手动删除", fileLink)
 			} else {
 				log.Println("AliyunOSS临时音频清理成功！")
 			}
@@ -175,7 +176,7 @@ func (app *VideoSrt) Run(media string) {
 	}
 
 	//阿里云录音文件识别
-	AudioResult := asr.AliyunAudioRecognition(filelink, app.AliyunCloud, app.AutoBlock)
+	AudioResult := asr.AliyunAudioRecognition(fileLink, app.AliyunCloud, app.AutoBlock)
 
 	log.Printf("step4: %v 识别成功 , 开始制作字幕 ...", tmpAudio)
 

@@ -1,8 +1,12 @@
 package asr
 
 import (
+	"bufio"
 	"github.com/buger/jsonparser"
+	"log"
+	"os"
 	"regexp"
+	"sort"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -13,13 +17,22 @@ type AliyunAudioRecResultBlock struct {
 	Blocks []int
 }
 
-//阿里云录音录音文件识别 - 自动分段处理
-func AliyunAudioResultWordHandle(result []byte, callback func(vresult *AliyunAudioRecResult)) {
-	var audioResult = make(map[int64][]*AliyunAudioRecResultBlock)
-	var wordResult = make(map[int64][]*AliyunAudioWord)
-	var err error
+//阿里云录音录音文件识别 自动分段处理
+func AliyunAudioResultWordHandle(result []byte, callback func(tmpResult *AliyunAudioRecResult)) {
+	var (
+		SentenceResult = make(map[int64][]*AliyunAudioRecResultBlock)
+		wordResult  = make(map[int64][]*AliyunAudioWord)
+		err         error
+	)
 
-	//获取录音识别数据集
+	////test
+	//AliyunAudioResult, err := jsonparser.GetUnsafeString(result)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//log.Println("result", AliyunAudioResult)
+
+	//获取整句识别数据集
 	_, err = jsonparser.ArrayEach(result, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		text, _ := jsonparser.GetString(value, "Text")
 		channelId, _ := jsonparser.GetInt(value, "ChannelId")
@@ -29,75 +42,83 @@ func AliyunAudioResultWordHandle(result []byte, callback func(vresult *AliyunAud
 		speechRate, _ := jsonparser.GetInt(value, "SpeechRate")
 		emotionValue, _ := jsonparser.GetInt(value, "EmotionValue")
 
-		vresult := &AliyunAudioRecResultBlock{}
-		vresult.Text = text
-		vresult.ChannelId = channelId
-		vresult.BeginTime = beginTime
-		vresult.EndTime = endTime
-		vresult.SilenceDuration = silenceDuration
-		vresult.SpeechRate = speechRate
-		vresult.EmotionValue = emotionValue
+		tmpResult := &AliyunAudioRecResultBlock{}
+		tmpResult.Text = text
+		tmpResult.ChannelId = channelId
+		tmpResult.BeginTime = beginTime
+		tmpResult.EndTime = endTime
+		tmpResult.SilenceDuration = silenceDuration
+		tmpResult.SpeechRate = speechRate
+		tmpResult.EmotionValue = emotionValue
 
-		_, isPresent := audioResult[channelId]
-		if isPresent {
+		log.Println(" tmpResult:", tmpResult)
+		// isExist判断SentenceResult中是否有内容存在，如果为空，则需先绑定AliyunAudioRecResultBlock
+		_, isExist := SentenceResult[channelId]
+		log.Println("SentenceResult", SentenceResult)
+		bufio.NewReader(os.Stdin).ReadBytes('\n') //断点 1
+		if isExist {
 			//追加
-			audioResult[channelId] = append(audioResult[channelId], vresult)
+			SentenceResult[channelId] = append(SentenceResult[channelId], tmpResult)
 		} else {
 			//初始
-			audioResult[channelId] = []*AliyunAudioRecResultBlock{}
-			audioResult[channelId] = append(audioResult[channelId], vresult)
+			SentenceResult[channelId] = []*AliyunAudioRecResultBlock{}
+			SentenceResult[channelId] = append(SentenceResult[channelId], tmpResult)
 		}
 	}, "Result", "Sentences")
 	if err != nil {
 		panic(err)
 	}
 
-	//获取词语数据集
+	//获取词语识别数据集
 	_, err = jsonparser.ArrayEach(result, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		word, _ := jsonparser.GetString(value, "Word")
 		channelId, _ := jsonparser.GetInt(value, "ChannelId")
 		beginTime, _ := jsonparser.GetInt(value, "BeginTime")
 		endTime, _ := jsonparser.GetInt(value, "EndTime")
-		vresult := &AliyunAudioWord{
+		tmpResult := &AliyunAudioWord{
 			Word:      word,
 			ChannelId: channelId,
 			BeginTime: beginTime,
 			EndTime:   endTime,
 		}
-		_, isPresent := wordResult[channelId]
-		if isPresent {
+		_, isExist := wordResult[channelId]
+		if isExist {
 			//追加
-			wordResult[channelId] = append(wordResult[channelId], vresult)
+			wordResult[channelId] = append(wordResult[channelId], tmpResult)
 		} else {
 			//初始
 			wordResult[channelId] = []*AliyunAudioWord{}
-			wordResult[channelId] = append(wordResult[channelId], vresult)
+			wordResult[channelId] = append(wordResult[channelId], tmpResult)
 		}
 	}, "Result", "Words")
 	if err != nil {
 		panic(err)
 	}
 
-	var symbol = []string{"？", "。", "，", "！", "；", "、", "?", ".", ",", "!"}
-	//数据集处理
-	for _, value := range audioResult {
-		for _, data := range value {
-			data.Blocks = GetTextBlock(data.Text)
-			data.Text = ReplaceStrs(data.Text, symbol, "")
+	// 对识别的数据集进行处理
+	puncStr := []string{"？", "。", "，", "！", "；", "、", "?", ".", ",", "!"}
+
+	//句子数据集处理
+	for _, value := range SentenceResult {
+		for _, sentences := range value {
+			sentences.Blocks = GetTextBlock(sentences.Text, puncStr)
+			sentences.Text = ReplaceStrs(sentences.Text, puncStr, "")
+			log.Println("sentences", sentences)
+			//bufio.NewReader(os.Stdin).ReadBytes('\n') //断点 2
 		}
 	}
 
-	//遍历输出
+	//词语数据集处理
 	for _, value := range wordResult {
 
-		var block string = ""
-		var blockRune int = 0
-		var lastBlock int = 0
-
-		var beginTime int64 = 0
-		var blockBool = false
-
-		var ischinese = IsChineseWords(value) //校验中文
+		var (
+			block     string = ""
+			blockRune int    = 0
+			lastBlock int    = 0
+			beginTime int64  = 0
+			blockBool        = false
+			ischinese        = IsChineseWords(value) //校验中文
+		)
 
 		for i, word := range value {
 			if blockBool || i == 0 {
@@ -110,9 +131,10 @@ func AliyunAudioResultWordHandle(result []byte, callback func(vresult *AliyunAud
 			} else {
 				block += CompleSpace(word.Word) //补全空格
 			}
+			log.Println("block", block)
 			blockRune = utf8.RuneCountInString(block)
 
-			for channel, p := range audioResult {
+			for channel, p := range SentenceResult {
 				if word.ChannelId != channel {
 					continue
 				}
@@ -125,11 +147,12 @@ func AliyunAudioResultWordHandle(result []byte, callback func(vresult *AliyunAud
 							if (blockRune >= B) && B != -1 {
 								flag = true
 
-								//fmt.Println(  block )
-								//fmt.Println(  w.Text )
-								//fmt.Println(  w.Blocks )
-								//fmt.Println(B , lastBlock , (B - lastBlock) , word.Word)
-								//fmt.Println(w.Text)
+								log.Println("block", block)
+								log.Println("w.Text", w.Text)
+								log.Println("w.Blocks", w.Blocks)
+								log.Println(B, word.Word)
+
+								//bufio.NewReader(os.Stdin).ReadBytes('\n') //断点 3
 
 								var thisText = ""
 								//容错机制
@@ -141,7 +164,7 @@ func AliyunAudioResultWordHandle(result []byte, callback func(vresult *AliyunAud
 										thisText = SubString(w.Text, lastBlock, 10000)
 										early = true
 									} else {
-										thisText = SubString(w.Text, lastBlock, B - lastBlock)
+										thisText = SubString(w.Text, lastBlock, B-lastBlock)
 									}
 								}
 
@@ -157,7 +180,7 @@ func AliyunAudioResultWordHandle(result []byte, callback func(vresult *AliyunAud
 									w.Blocks[t] = -1
 								}
 
-								vresult := &AliyunAudioRecResult{
+								tmpResult := &AliyunAudioRecResult{
 									Text:            thisText,
 									ChannelId:       channel,
 									BeginTime:       beginTime,
@@ -166,7 +189,7 @@ func AliyunAudioResultWordHandle(result []byte, callback func(vresult *AliyunAud
 									SpeechRate:      w.SpeechRate,
 									EmotionValue:    w.EmotionValue,
 								}
-								callback(vresult) //回调传参
+								callback(tmpResult) //回调传参
 
 								blockBool = true
 								break
@@ -187,8 +210,8 @@ func AliyunAudioResultWordHandle(result []byte, callback func(vresult *AliyunAud
 							var thisText = SubString(w.Text, lastBlock, 10000)
 
 							w.Blocks[len(w.Blocks)-1] = -1
-							//vresult
-							vresult := &AliyunAudioRecResult{
+							//tmpResult
+							tmpResult := &AliyunAudioRecResult{
 								Text:            thisText,
 								ChannelId:       channel,
 								BeginTime:       beginTime,
@@ -202,7 +225,7 @@ func AliyunAudioResultWordHandle(result []byte, callback func(vresult *AliyunAud
 							//fmt.Println(  block )
 							//fmt.Println(  word.Word , beginTime, w.EndTime , flag  , word.EndTime  )
 
-							callback(vresult) //回调传参
+							callback(tmpResult) //回调传参
 
 							//覆盖下一段落的时间戳
 							if windex < (len(p) - 1) {
@@ -232,7 +255,6 @@ func FindSliceIntCount(slice []int, target int) int {
 	return c
 }
 
-//批量替换多个关键词文本
 func ReplaceStrs(strs string, olds []string, s string) string {
 	for _, word := range olds {
 		strs = strings.Replace(strs, word, s, -1)
@@ -240,15 +262,6 @@ func ReplaceStrs(strs string, olds []string, s string) string {
 	return strs
 }
 
-func StringIndex(strs string, word rune) int {
-	strsRune := []rune(strs)
-	for i, v := range strsRune {
-		if v == word {
-			return i
-		}
-	}
-	return -1
-}
 
 //补全右边空格
 func CompleSpace(s string) string {
@@ -275,41 +288,67 @@ func IsChineseChar(str string) bool {
 	return false
 }
 
-func IndexRunes(strs string, olds []rune) int {
-	min := -1
-	for i, word := range olds {
-		index := StringIndex(strs, word)
-		//println( "ts : " , index)
-		if i == 0 {
-			min = index
-		} else {
-			if min == -1 {
-				min = index
-			} else {
-				if index < min && index != -1 {
-					min = index
+
+func IsContain(items []rune, item rune) bool {
+	for _, eachItem := range items {
+		if eachItem == item {
+			return true
+		}
+	}
+	return false
+}
+
+func GetTextBlock(strs string, puncStr []string) []int {
+
+
+	log.Println("strs", strs)
+
+	puncsStr := strings.Join(puncStr, "")
+	//获得标点和字符串对应的utf8编码值
+	puncsRune := []rune(puncsStr)
+	strsRune := []rune(strs)
+	//log.Println("puncRune", puncsRune)
+	//log.Println("strsRune", strsRune)
+
+	//切分
+	index := 0
+	puncIndex := []int{}
+	blocks := []int{}
+	blocks = append(blocks, 0)
+
+	for i, strRune := range strsRune {
+		if IsContain(puncsRune, strRune) {
+			puncIndex = append(puncIndex, i)
+			for {
+				if i - blocks[index] < 25 {
+					blocks = append(blocks, i)
+					index = len(blocks) - 1 //更新索引指向blocks数组中的最后一个元素
+					sort.Ints(blocks)  //调整切块索引顺序，从小到大
+					break
 				}
+				blocks = append(blocks, i)
+
+				//TODO 改进切分算法，避免把词分开
+				i -= 15
 			}
 		}
 	}
-	return min
-}
 
-func GetTextBlock(strs string) []int {
-	var symbol_zhcn = []rune{'？', '。', '，', '！', '；', '?', '.', ',', '!'}
-	//var symbol_en = []rune{'?','.',',','!'}
-	strsRune := []rune(strs)
+	//除去开头植入的0元素
+	blocks = blocks[1:]
 
-	blocks := []int{}
-	for {
-		index := IndexRunes(strs, symbol_zhcn)
-		if index == -1 {
-			break
+	//消除标点带来的索引位移
+	for i, block := range blocks {
+		for _, punc := range puncIndex {
+			if block <= punc {
+				break
+			}
+			blocks[i] = blocks[i] - 1
 		}
-		strs = string(strsRune[0:index]) + string(strsRune[(index+1):])
-		strsRune = []rune(strs)
-		blocks = append(blocks, index)
 	}
+
+	//log.Println("blocks", blocks)
+
 	return blocks
 }
 
