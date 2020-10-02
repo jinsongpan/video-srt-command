@@ -1,10 +1,7 @@
 package asr
 
 import (
-	"bufio"
 	"github.com/buger/jsonparser"
-	"log"
-	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -51,11 +48,11 @@ func AliyunAudioResultWordHandle(result []byte, callback func(tmpResult *AliyunA
 		tmpResult.SpeechRate = speechRate
 		tmpResult.EmotionValue = emotionValue
 
-		log.Println(" tmpResult:", tmpResult)
+		//log.Println(" tmpResult:", tmpResult)
 		// isExist判断SentenceResult中是否有内容存在，如果为空，则需先绑定AliyunAudioRecResultBlock
 		_, isExist := SentenceResult[channelId]
-		log.Println("SentenceResult", SentenceResult)
-		bufio.NewReader(os.Stdin).ReadBytes('\n') //断点 1
+		//log.Println("SentenceResult", SentenceResult)
+		//bufio.NewReader(os.Stdin).ReadBytes('\n') //断点 1
 		if isExist {
 			//追加
 			SentenceResult[channelId] = append(SentenceResult[channelId], tmpResult)
@@ -103,7 +100,7 @@ func AliyunAudioResultWordHandle(result []byte, callback func(tmpResult *AliyunA
 		for _, sentences := range value {
 			sentences.Blocks = GetTextBlock(sentences.Text, puncStr)
 			sentences.Text = ReplaceStrs(sentences.Text, puncStr, "")
-			log.Println("sentences", sentences)
+			//log.Println("sentences", sentences)
 			//bufio.NewReader(os.Stdin).ReadBytes('\n') //断点 2
 		}
 	}
@@ -131,7 +128,7 @@ func AliyunAudioResultWordHandle(result []byte, callback func(tmpResult *AliyunA
 			} else {
 				block += CompleSpace(word.Word) //补全空格
 			}
-			log.Println("block", block)
+			//log.Println("block", block)
 			blockRune = utf8.RuneCountInString(block)
 
 			for channel, p := range SentenceResult {
@@ -147,10 +144,10 @@ func AliyunAudioResultWordHandle(result []byte, callback func(tmpResult *AliyunA
 							if (blockRune >= B) && B != -1 {
 								flag = true
 
-								log.Println("block", block)
-								log.Println("w.Text", w.Text)
-								log.Println("w.Blocks", w.Blocks)
-								log.Println(B, word.Word)
+								//log.Println("block", block)
+								//log.Println("w.Text", w.Text)
+								//log.Println("w.Blocks", w.Blocks)
+								//log.Println(B, word.Word)
 
 								//bufio.NewReader(os.Stdin).ReadBytes('\n') //断点 3
 
@@ -301,7 +298,7 @@ func IsContain(items []rune, item rune) bool {
 func GetTextBlock(strs string, puncStr []string) []int {
 
 
-	log.Println("strs", strs)
+	//log.Println("strs", strs)
 
 	puncsStr := strings.Join(puncStr, "")
 	//获得标点和字符串对应的utf8编码值
@@ -340,7 +337,7 @@ func GetTextBlock(strs string, puncStr []string) []int {
 	//消除标点带来的索引位移
 	for i, block := range blocks {
 		for _, punc := range puncIndex {
-			if block <= punc {
+			if block < punc {
 				break
 			}
 			blocks[i] = blocks[i] - 1

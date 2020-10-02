@@ -1,7 +1,7 @@
 package app
 
 import (
-	"bufio"
+	//"bufio"
 	"fmt"
 	"log"
 	"os"
@@ -150,7 +150,7 @@ func (app *VideoSrt) Run(media string) {
 	}
 
 	log.Printf("step2: 上传规范化后的音频文件:%v...", tmpAudio)
-	bufio.NewReader(os.Stdin).ReadBytes('\n') //断点 0
+	//bufio.NewReader(os.Stdin).ReadBytes('\n') //断点 0
 
 	//上传音频至OSS
 	OSSTempFile := oss.UploadAudioToCloud(app.AliyunOSS, tmpAudio)
