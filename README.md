@@ -1,8 +1,7 @@
 # video-srt-command
 一个自动生成字幕SRT文件的开源软件工具(命令行版本)
 
-***开源声明：修改自[video-srt](https://github.com/wxbool/video-srt).目前video-srt项目存在些问题，无法正常运行。和原作者@Viggo沟通后，
-对方表示暂时没有精力对video-srt这个项目进行更新维护。我对这个项目比较感兴趣，对项目进行了修改重构，使之能够正常运行。为了便于后续迭代更新，新建了video-srt-command开源项目。***
+***开源声明：修改自[video-srt](https://github.com/wxbool/video-srt)***
 
 ## 功能概要
     * 支持常见格式的视频字幕和歌曲歌词的自动生成，相应的格式有srt,lrc,txt，需在配置文件config.ini中提前指定
