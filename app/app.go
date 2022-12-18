@@ -229,7 +229,7 @@ func (app *VideoSrt) AliyunTransResult(mediaName string, AudioResult map[int64][
 			index++
 			//翻译进程
 			tempProcess := (float64(index) / float64(textLines)) * 100
-			if (tempProcess - transProcess) > 25 {
+			if (tempProcess - transProcess) > 20 {
 				//输出比例
 				log.Println("字幕翻译已处理："+fmt.Sprintf("%.2f", tempProcess)+"%", mediaName)
 				transProcess = tempProcess
